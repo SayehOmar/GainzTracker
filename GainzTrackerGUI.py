@@ -1,7 +1,8 @@
-from PyQt5.QtWidgets import QDialog, QMessageBox
+from PyQt5.QtWidgets import QApplication, QDialog, QMessageBox
 from Logic import WorkoutValidator, UserData  # Import from Logic.py
 from PyQt5 import uic
 from PyQt5.QtCore import QDate
+import sys
 
 
 class GainzTrackerApp(QDialog):
@@ -19,8 +20,8 @@ class GainzTrackerApp(QDialog):
             "dd-MM-yyyy"
         )  # Convert to string format
         selected_workouts = (
-            self.ui.ComboBox.get_checked_items()
-        )  # Replace with the correct method for getting checked items
+            self.get_checked_workouts()
+        )  # Get checked items from ComboBox
         creatine_intake = self.ui.Creatine.text()
         weight = self.ui.Weight.text()
 
@@ -51,7 +52,7 @@ class GainzTrackerApp(QDialog):
             QMessageBox.warning(
                 self,
                 "Invalid Weight",
-                "Please enter a valid weight  (numeric value and above 40Kg ).",
+                "Please enter a valid weight (numeric value and above 40Kg).",
             )
             return
 
@@ -66,10 +67,20 @@ class GainzTrackerApp(QDialog):
         daily_summary = self.user_data.get_daily_summary(selected_date)
         self.show_daily_summary(daily_summary)
 
+    def get_checked_workouts(self):
+        """Manually retrieve the checked workouts from the ComboBox."""
+        selected_workouts = []
+        for i in range(self.ui.ComboBox.count()):
+            item_text = self.ui.ComboBox.itemText(i)
+            if self.ui.ComboBox.itemData(
+                i
+            ):  # Assuming the ComboBox stores check status as itemData
+                selected_workouts.append(item_text)
+        return selected_workouts
+
     def show_daily_summary(self, summary):
         """Display the summary of the day in a message box."""
         summary_text = f"Date: {summary['date']}\n\n"
-
         summary_text += "Workouts:\n"
         for workout in summary["workouts"]:
             summary_text += f"- {workout}\n"
@@ -79,3 +90,11 @@ class GainzTrackerApp(QDialog):
             summary_text += f"- {intake}g\n"
 
         QMessageBox.information(self, "Daily Summary", summary_text)
+
+
+# Main entry point
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    dialog = GainzTrackerApp()
+    dialog.show()
+    sys.exit(app.exec_())
