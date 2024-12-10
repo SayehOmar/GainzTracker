@@ -1,53 +1,30 @@
 import psycopg2
 
-# Database connection parameters
-DB_CONFIG = {
-    "host": "localhost",
-    "database": "gainztracker",
-    "user": "your_username",
-    "password": "your_password",
-}
 
+class DatabaseManager:
+    def __init__(self):
+        # Update with your PostgreSQL credentials
+        self.connection = psycopg2.connect(
+            dbname="GainzTracker",  # Database name
+            user="postgres",  # Replace with your username
+            password="0000",  # Replace with your password
+            host="localhost",
+            port="5432",  # Default PostgreSQL port
+        )
+        self.cursor = self.connection.cursor()
 
-def connect_to_db():
-    """Connect to the PostgreSQL database."""
-    try:
-        conn = psycopg2.connect(**DB_CONFIG)
-        return conn
-    except Exception as e:
-        print("Error connecting to the database:", e)
-        return None
-
-
-def save_entry(date, category, detail, value):
-    """Save a new entry to the database."""
-    conn = connect_to_db()
-    if conn:
+    def insert_data(self, date, workout, creatine_intake, weight):
         try:
-            cursor = conn.cursor()
-            query = "INSERT INTO logs (date, category, detail, value) VALUES (%s, %s, %s, %s)"
-            cursor.execute(query, (date, category, detail, value))
-            conn.commit()
-            cursor.close()
-            print("Entry saved successfully.")
+            query = """
+            INSERT INTO user_data (date, workout, creatine_intake, weight)
+            VALUES (%s, %s, %s, %s);
+            """
+            self.cursor.execute(query, (date, workout, creatine_intake, weight))
+            self.connection.commit()
+            print("Data inserted successfully.")
         except Exception as e:
-            print("Error saving entry:", e)
-        finally:
-            conn.close()
+            print("Error inserting data:", e)
 
-
-def fetch_all_logs():
-    """Fetch all logs from the database."""
-    conn = connect_to_db()
-    if conn:
-        try:
-            cursor = conn.cursor()
-            cursor.execute("SELECT * FROM logs ORDER BY date DESC")
-            logs = cursor.fetchall()
-            cursor.close()
-            return logs
-        except Exception as e:
-            print("Error fetching logs:", e)
-        finally:
-            conn.close()
-    return []
+    def close(self):
+        self.cursor.close()
+        self.connection.close()

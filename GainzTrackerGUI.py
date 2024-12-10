@@ -4,6 +4,7 @@ from Logic import WorkoutValidator, UserData  # Import from Logic.py
 from PyQt5 import uic
 from PyQt5.QtCore import QDate
 import sys
+from DatabaseConnection import DatabaseManager
 
 
 class GainzTrackerApp(QDialog):
@@ -12,6 +13,7 @@ class GainzTrackerApp(QDialog):
         self.ui = uic.loadUi("GainzTracker.ui", self)  # Load the UI
         self.validator = WorkoutValidator()  # Create instance of WorkoutValidator
         self.user_data = UserData()  # Create instance of UserData
+        self.db_manager = DatabaseManager()  # Initialize the database manager
         self.ui.Date.setDate(
             QDate.currentDate()
         )  # Default the date to the current date
@@ -76,6 +78,10 @@ class GainzTrackerApp(QDialog):
         # Display a summary of the day
         daily_summary = self.user_data.get_daily_summary(selected_date)
         self.show_daily_summary(daily_summary)
+        # Insert data into PostgreSQL database
+        self.db_manager.insert_data(
+            selected_date, selected_workouts, float(creatine_intake), float(weight)
+        )
 
         # Clear the fields after submission
         self.clear_fields()
@@ -98,8 +104,9 @@ class GainzTrackerApp(QDialog):
             summary_text += "\nWeight: Not recorded\n"
 
         QMessageBox.information(self, "Daily Summary", summary_text)
+
         QMessageBox.information(
-            self, "Success", "Your data has been successfully logged!"
+            self, "Success", "Your data has been successfully saved !"
         )
 
     def clear_fields(self):
@@ -108,6 +115,10 @@ class GainzTrackerApp(QDialog):
         self.ui.Workout.setCurrentIndex(0)  # Reset the ComboBox to the first item
         self.ui.Creatine.clear()  # Clear the creatine intake QLineEdit
         self.ui.Weight.clear()  # Clear the weight QLineEdit
+
+    def closeEvent(self, event):
+        """Close database connection on app exit."""
+        self.db_manager.close()
 
 
 # Main entry point
