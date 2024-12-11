@@ -5,11 +5,15 @@ from PyQt5 import uic
 from PyQt5.QtCore import QDate
 import sys
 from DatabaseConnection import DatabaseManager
+from PyQt5.QtGui import QIcon
 
 
 class GainzTrackerApp(QDialog):
     def __init__(self):
         super().__init__()
+        self.setWindowIcon(QIcon("icon.png"))
+        self.ui = Ui_MainWindow()
+        self.ui.setupUi(self)
         self.ui = uic.loadUi("GainzTracker.ui", self)  # Load the UI
         self.validator = WorkoutValidator()  # Create instance of WorkoutValidator
         self.user_data = UserData()  # Create instance of UserData
